@@ -1,3 +1,5 @@
+#ifndef PARAMETERS_H
+#define PARAMETERS_H
 
 #include <unordered_map>
 #include <sstream>
@@ -44,7 +46,6 @@ class Parameters {
     }
     return value;
   }
-
 };
 
-
+#endif

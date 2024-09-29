@@ -4,7 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/root/project/mng_sigmod/include"
+                "/root/project/taumng_sigmod/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

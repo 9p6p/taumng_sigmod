@@ -65,6 +65,27 @@ std::vector<std::vector<int> > load_ground_truth(const char* filename) {
     return res;
 }
 
+template <class T>
+T* read_bin(const char* filename, uint32_t& npts, uint32_t& dim) {
+    std::ifstream in(filename, std::ios::binary);
+    if (!in.is_open()) {
+        std::cerr << "Error: Could not open file " << filename << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    in.read(reinterpret_cast<char*>(&npts), sizeof(uint32_t));
+    in.read(reinterpret_cast<char*>(&dim), sizeof(uint32_t));
+    std::cout << "Loading data from file: " << filename << ", points_num: " << npts << ", dim: " << dim << std::endl;
+    size_t total_size = static_cast<size_t>(npts) * dim;  // notice if the space is exceed the bound size_t max
+    if (total_size > std::numeric_limits<size_t>::max() / sizeof(T)) {
+        std::cerr << "Requested size is too large." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    T* data = new T[total_size];
+    in.read(reinterpret_cast<char*>(data), total_size * sizeof(T));
+    in.close();
+    return data;
+}
+
 int main(int argc, char** argv) {
     if (argc != 8) {
         std::cout << argv[0]

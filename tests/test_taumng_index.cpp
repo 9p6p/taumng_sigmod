@@ -1,6 +1,7 @@
 
 #include <index_taumng.h>
 #include <util.h>
+#include <omp.h>
 
 void load_data(char* filename, float*& data, unsigned& num,
                unsigned& dim) {  // load data with sift10K pattern
@@ -24,24 +25,45 @@ void load_data(char* filename, float*& data, unsigned& num,
     in.close();
 }
 
+template <class T>
+T* read_bin(const char* filename, uint32_t& npts, uint32_t& dim) {
+    std::ifstream in(filename, std::ios::binary);
+    if (!in.is_open()) {
+        std::cerr << "Error: Could not open file " << filename << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    in.read(reinterpret_cast<char*>(&npts), sizeof(uint32_t));
+    in.read(reinterpret_cast<char*>(&dim), sizeof(uint32_t));
+    std::cout << "Loading data from file: " << filename << ", points_num: " << npts << ", dim: " << dim << std::endl;
+    size_t total_size = static_cast<size_t>(npts) * dim;  // notice if the space is exceed the bound size_t max
+    if (total_size > std::numeric_limits<size_t>::max() / sizeof(T)) {
+        std::cerr << "Requested size is too large." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    T* data = new T[total_size];
+    in.read(reinterpret_cast<char*>(data), total_size * sizeof(T));
+    in.close();
+    return data;
+}
+
 int main(int argc, char** argv) {
     if (argc != 9) {
-        std::cout << argv[0] << " data_file nn_graph_path L R C angle tau save_graph_file "
+        std::cout << argv[0] << " data_file nn_graph_path L R C tau ang save_graph_file "
                   << std::endl;
         exit(-1);
     }
-    float* data_load = NULL;
+    //float* data_load = NULL;
     unsigned points_num, dim;
-    load_data(argv[1], data_load, points_num, dim);
+    float* data_load = read_bin<float>(argv[1], points_num, dim);
 
     std::string nn_graph_path(argv[2]);
     unsigned L = (unsigned)atoi(argv[3]);
     unsigned R = (unsigned)atoi(argv[4]);
     unsigned C = (unsigned)atoi(argv[5]);
-    float angle = atof(argv[6]);
-    float tau = atof(argv[7]);
+    float tau = atof(argv[6]);
+    float ang = atof(argv[7]);
 
-    IndexTauMNG index(dim, points_num, L2, nullptr);
+    IndexTauMNG index(dim, points_num, INNER_PRODUCT, nullptr);
 
     auto s = std::chrono::high_resolution_clock::now();
     Parameters paras;
@@ -50,9 +72,10 @@ int main(int argc, char** argv) {
     paras.Set<unsigned>("C", C);
     paras.Set<std::string>("nn_graph_path", nn_graph_path);
 
-    index.ang = angle;
     index.tau = tau;
+    index.ang = ang;
 
+    omp_set_num_threads(omp_get_num_procs());
     index.Build(points_num, data_load, paras);
     auto e = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff = e - s;

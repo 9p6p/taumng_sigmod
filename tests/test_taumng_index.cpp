@@ -61,7 +61,6 @@ int main(int argc, char** argv) {
     unsigned R = (unsigned)atoi(argv[4]);
     unsigned C = (unsigned)atoi(argv[5]);
     float tau = atof(argv[6]);
-    float ang = atof(argv[7]);
 
     IndexTauMNG index(dim, points_num, INNER_PRODUCT, nullptr);
 
@@ -73,15 +72,16 @@ int main(int argc, char** argv) {
     paras.Set<std::string>("nn_graph_path", nn_graph_path);
 
     index.tau = tau;
-    index.ang = ang;
+    index.ang = 30; // not useful
 
     omp_set_num_threads(omp_get_num_procs());
+    std::cout << "start build. " << std::endl;
     index.Build(points_num, data_load, paras);
     auto e = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> diff = e - s;
 
-    std::cout << "indexing time: " << diff.count() << "\n";
-    index.Save(argv[8]);
+    std::cout << "indexing time: " << diff.count() << std::endl;
+    index.Save(argv[7]);
 
     return 0;
 }

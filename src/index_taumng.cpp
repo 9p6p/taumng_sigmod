@@ -224,6 +224,7 @@ void IndexTauMNG::init_graph(const Parameters& parameters) {
     ep_ = rand() % nd_;
     get_neighbors(center, parameters, tmp, pool);
     ep_ = tmp[0].id;
+    delete center;
 }
 
 void IndexTauMNG::sync_prune(unsigned q, std::vector<Neighbor>& pool, const Parameters& parameter, boost::dynamic_bitset<>& flags, SimpleNeighbor* cut_graph_) {
@@ -457,7 +458,7 @@ void IndexTauMNG::Search_QEO(const float* query, const float* x, size_t K, const
 
     for (unsigned i = 0; i < tmp_l; i++) {
         unsigned id = init_ids[i];
-        float dist = distance_->compare_by_loop(data_ + dimension_ * id, query, (unsigned)dimension_);
+        float dist = distance_->compare(data_ + dimension_ * id, query, (unsigned)dimension_);
         retset[i] = Neighbor(id, dist, true);
         NDC++;
     }
@@ -599,7 +600,7 @@ void IndexTauMNG::Search_QEO_PDP(const float* query, const float* x, size_t K, c
 
     for (unsigned i = 0; i < tmp_l; i++) {
         unsigned id = init_ids[i];
-        float dist = distance_->compare_by_loop(data_ + dimension_ * id, query, (unsigned)dimension_);
+        float dist = distance_->compare(data_ + dimension_ * id, query, (unsigned)dimension_);
         retset[i] = Neighbor(id, dist, true);
         NDC++;
     }
@@ -774,7 +775,7 @@ void IndexTauMNG::Search_QEO_PDP_PII(const float* query, const float* x, size_t 
 
     for (unsigned i = 0; i < tmp_l; i++) {
         unsigned id = init_ids[i];
-        float dist = distance_->compare_by_loop(data_ + dimension_ * id, query, (unsigned)dimension_);
+        float dist = distance_->compare(data_ + dimension_ * id, query, (unsigned)dimension_);
         NDC++;
         not_break_comp_NDC++;
         not_break_comp_amount += 2 * dimension_;
